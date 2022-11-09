@@ -1,10 +1,10 @@
 <?php
     class Conexion extends PDO{
 
-        private $hostBd = 'localhost';
-        private $nombreBd = 'libreria';
+        private $hostBd = 'myBDIntegration:3306';
+        private $nombreBd = 'libreriaDB';
         private $usuarioBd = 'root';
-        private $passwordBd = '';
+        private $passwordBd = 'nova';
 
         public function __construct(){
             try{
