@@ -3,7 +3,7 @@ services:
   apirest:
     build: .
     ports:
-      - "8084:80"
+      - "8085:80"
     links:
       - myBDIntegration
   myBDIntegration:
@@ -13,3 +13,9 @@ services:
     environment:
       - MYSQL_DATABASE=libreriaDB
       - MYSQL_ROOT_PASSWORD=nova
+ # integracion:
+  #  image: jenkins/jenkins
+  #  ports: 
+ #     - "8086:8080"
+  #  links: 
+ #     - apirest
