@@ -11,7 +11,17 @@ while (@count($URI) > 0 && !end($URI)) {
     @array_pop($URI);
 }
 
-//print_r();
+//print_r($URI[1]);
+function getRowByID($id)
+{
+    $sql = $GLOBALS["pdo"]->prepare("SELECT * FROM editorial WHERE id=:id_editoral");
+    $sql->bindValue(':id_editoral', $id);
+    $sql->execute();
+    $sql->setFetchMode(PDO::FETCH_ASSOC);
+
+    return json_encode($sql->fetchAll());
+}
+
 
 switch ($URI[1]) {
     case 'libro':
@@ -76,17 +86,14 @@ switch ($URI[1]) {
 
     case 'editorial':
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            if (isset($_GET['id_libro'])) {
-                $sql = $pdo->prepare("SELECT * FROM libro WHERE id_libro=:id_libro");
-                $sql->bindValue(':id_libro', $_GET['id_libro']);
-                $sql->execute();
-                $sql->setFetchMode(PDO::FETCH_ASSOC);
+            if (isset($_GET['id_editoral'])) {
+                $row = getRowByID($_GET['id_editoral']);
                 header("HTTP/1.1 200 OK");
-                echo json_encode($sql->fetchAll());
+                echo $row;
                 exit;
             } else {
 
-                $sql = $pdo->prepare("SELECT * FROM libro");
+                $sql = $pdo->prepare("SELECT * FROM editorial");
                 $sql->execute();
                 $sql->setFetchMode(PDO::FETCH_ASSOC);
                 header("HTTP/1.1 200 OK");
@@ -96,12 +103,10 @@ switch ($URI[1]) {
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $sql = "INSERT INTO libro (nombre, disponibilidad, registro, editorial) VALUES (:nombre, :disponibilidad, :registro, :editorial)";
+            $sql = "INSERT INTO editorial (nombre, descripcion) VALUES (:nombre, :descripcion)";
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(':nombre', $_POST['nombre']);
-            $stmt->bindValue(':disponibilidad', $_POST['disponibilidad']);
-            $stmt->bindValue(':registro', $_POST['registro']);
-            $stmt->bindValue(':editorial', $_POST['editorial']);
+            $stmt->bindValue(':descripcion', $_POST['descripcion']);
             $stmt->execute();
             $idPost = $pdo->lastInsertId();
             if ($idPost) {
@@ -112,24 +117,28 @@ switch ($URI[1]) {
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            $sql = "UPDATE libro SET nombre=:nombre, disponibilidad=:disponibilidad, registro=:registro, editorial=:editorial WHERE id_libro=:id_libro";
+            parse_str(file_get_contents("php://input"), $put_vars);
+            $sql = "UPDATE editorial SET nombre=:nombre, descripcion=:descripcion WHERE id=:id_editorial";
             $stmt = $pdo->prepare($sql);
-            $stmt->bindValue(':nombre', $_GET['nombre']);
-            $stmt->bindValue(':disponibilidad', $_GET['disponibilidad']);
-            $stmt->bindValue(':registro', $_GET['registro']);
-            $stmt->bindValue(':editorial', $_GET['editorial']);
-            $stmt->bindValue(':id_libro', $_GET['id_libro']);
+            $stmt->bindValue(':nombre', $put_vars['nombre']);
+            $stmt->bindValue(':descripcion', $put_vars['descripcion']);
+            $stmt->bindValue(':id_editorial', $put_vars['id_editorial']);
             $stmt->execute();
+            $row = getRowByID($put_vars['id_editorial']);
             header("HTTP/1.1 200 OK");
+            echo $row;
             exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            $sql = "DELETE FROM libro WHERE id_libro=:id_libro";
+            parse_str(file_get_contents("php://input"), $delete_vars);
+            $row = getRowByID($delete_vars['id_editorial']);
+            $sql = "DELETE FROM editorial WHERE id=:id_editorial";
             $stmt = $pdo->prepare($sql);
-            $stmt->bindValue(':id_libro', $_GET['id_libro']);
+            $stmt->bindValue(':id_editorial', $delete_vars['id_editorial']);
             $stmt->execute();
             header("HTTP/1.1 200 OK");
+            echo $row;
             exit;
         }
         break;
